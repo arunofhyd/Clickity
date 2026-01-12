@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Clickity</title>
-
+    
     <meta name="description" content="Clickity - A simple, elegant counter app with haptic feedback and themes.">
     <meta name="keywords" content="counter, tally, clicker, app, pwa, simple, minimal">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-
+    
     <!-- Open Graph -->
     <meta property="og:title" content="Clickity">
     <meta property="og:description" content="A simple, elegant counter app with haptic feedback and themes.">
@@ -88,9 +88,9 @@
         <!-- Brand & Status -->
         <div class="flex items-center gap-3">
             <img src="assets/logo_rounded.png" alt="Clickity Logo" class="w-10 h-10 rounded-full shadow-sm">
-            <div class="flex flex-col gap-0.5">
+            <div class="relative flex flex-col justify-center">
                 <h1 class="text-xl md:text-2xl font-extrabold tracking-tighter uppercase opacity-90">Clickity</h1>
-                <div id="storage-indicator" class="flex items-center gap-1.5 text-[10px] font-bold tracking-wide text-emerald-500 opacity-0 transition-opacity duration-500">
+                <div id="storage-indicator" class="absolute top-full left-0 mt-0.5 flex items-center gap-1.5 text-[10px] font-bold tracking-wide text-emerald-500 opacity-0 transition-opacity duration-500">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     SAVED
                 </div>
