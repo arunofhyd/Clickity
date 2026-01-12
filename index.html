@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clickity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        jet: '#000000',
+                        'jet-fg': '#1a1a1a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            /* Use dynamic viewport height for mobile browsers */
+            height: 100dvh; 
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Smooth Ripple Animation */
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 0.5; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+        .animate-ripple { animation: ripple 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Number Animation */
+        .count-display {
+            font-variant-numeric: tabular-nums;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            will-change: transform;
+        }
+        
+        .pressed .count-display { transform: scale(0.92); }
+
+        /* Focus Accessibility */
+        button:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 4px;
+        }
+
+        /* Theme Transitions */
+        .theme-transition {
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s, fill 0.3s, box-shadow 0.3s, opacity 0.3s;
+        }
+
+        /* Toggle Knob Slide */
+        .toggle-knob {
+            transition: transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="w-screen overflow-hidden flex flex-col items-center select-none theme-transition">
+
+    <!-- Header -->
+    <div class="w-full p-6 md:p-8 flex justify-between items-start z-20">
+        <!-- Brand & Status -->
+        <div class="flex flex-col gap-0.5">
+            <h1 class="text-xl md:text-2xl font-extrabold tracking-tighter uppercase opacity-90">Clickity</h1>
+            <div id="storage-indicator" class="flex items-center gap-1.5 text-[10px] font-bold tracking-wide text-emerald-500 opacity-0 transition-opacity duration-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                SAVED
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 md:gap-4">
+            <!-- Theme Switcher -->
+            <div class="flex bg-black/5 dark:bg-white/10 rounded-full p-1 gap-1 backdrop-blur-sm">
+                <button onclick="setTheme('light')" class="p-2 rounded-full hover:bg-white/50 dark:hover:bg-black/20 transition-colors focus:outline-none" aria-label="Light Mode">
+                    <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </button>
+                <button onclick="setTheme('dark')" class="p-2 rounded-full hover:bg-white/50 dark:hover:bg-black/20 transition-colors focus:outline-none" aria-label="Dark Mode">
+                    <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+                <button onclick="setTheme('jet')" class="p-2 rounded-full hover:bg-white/50 dark:hover:bg-black/20 transition-colors focus:outline-none" aria-label="Jet Black Mode">
+                    <svg class="w-4 h-4 opacity-70" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle></svg>
+                </button>
+            </div>
+
+            <!-- Settings Trigger -->
+            <button id="settings-trigger" class="p-3 rounded-full bg-black/5 dark:bg-white/10 backdrop-blur-sm hover:bg-black/10 dark:hover:bg-white/20 transition-colors focus:outline-none" aria-label="Settings">
+                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col items-center justify-center gap-8 md:gap-12 w-full relative">
+        
+        <!-- Interactive Circle -->
+        <button id="tap-btn" 
+            class="group relative w-64 h-64 md:w-80 md:h-80 rounded-full flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-[1.02] active:scale-[0.96] outline-none theme-transition shadow-2xl"
+            aria-label="Increment Counter">
+            
+            <!-- Ripple Effect Container -->
+            <div id="ripple-container" class="absolute inset-0 rounded-full overflow-hidden pointer-events-none transform translate-z-0"></div>
+
+            <!-- The Counter Number -->
+            <span id="count" class="count-display text-8xl md:text-9xl font-bold tracking-tighter z-10 select-none">0</span>
+            
+            <!-- Hover/Tap Hint -->
+            <span class="absolute bottom-10 text-xs md:text-sm font-medium opacity-30 group-hover:opacity-70 transition-opacity uppercase tracking-widest pointer-events-none">Tap</span>
+        </button>
+
+        <!-- Undo Button -->
+        <button id="undo-btn" 
+            class="p-4 rounded-full border transition-all duration-200 opacity-50 hover:opacity-100 hover:scale-110 active:scale-95 theme-transition focus:opacity-100 focus:outline-none"
+            aria-label="Undo Last Tap">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+        </button>
+
+    </div>
+
+    <!-- Footer: Reset -->
+    <div class="w-full p-8 pb-10 flex flex-col items-center justify-center z-20">
+        <button id="reset-btn" 
+            class="text-xs font-semibold tracking-widest uppercase opacity-40 hover:opacity-100 transition-all duration-300 px-6 py-4 rounded-lg focus:outline-none"
+            aria-label="Reset Counter">
+            Reset
+        </button>
+        <div class="h-4 text-[10px] opacity-30 mt-1 font-medium" id="reset-hint"></div>
+    </div>
+
+    <!-- Settings Modal Overlay -->
+    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
+        <!-- Backdrop -->
+        <div id="settings-backdrop" class="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity"></div>
+        
+        <!-- Settings Card -->
+        <div id="settings-card" class="relative w-72 md:w-80 rounded-3xl p-6 shadow-2xl transform scale-95 transition-all duration-300 translate-y-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-bold">Settings</h2>
+                <button id="close-settings" class="p-1.5 rounded-full opacity-50 hover:opacity-100 transition-opacity hover:bg-black/5 dark:hover:bg-white/10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Sound Toggle -->
+            <div class="flex justify-between items-center mb-5">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                    <span class="text-sm font-medium">Sound</span>
+                </div>
+                <button id="toggle-sound" class="w-12 h-7 rounded-full bg-zinc-200 relative transition-colors focus:outline-none" aria-pressed="true">
+                    <span class="toggle-knob absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow-sm"></span>
+                </button>
+            </div>
+
+            <!-- Haptics Toggle -->
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zM22 10l-1-1m1 4l-1 1m-19-4l1-1m-1 4l1 1"></path></svg>
+                    <span class="text-sm font-medium">Haptics</span>
+                </div>
+                <button id="toggle-haptics" class="w-12 h-7 rounded-full bg-zinc-200 relative transition-colors focus:outline-none" aria-pressed="true">
+                    <span class="toggle-knob absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow-sm"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Application State ---
+        let count = 0;
+        let currentTheme = 'light';
+        let settings = {
+            sound: true,
+            haptics: true
+        };
+        const STORAGE_KEY = 'clickity_count';
+        const THEME_KEY = 'clickity_theme';
+        const SETTINGS_KEY = 'clickity_settings';
+
+        // --- DOM Cache ---
+        const body = document.body;
+        const countDisplay = document.getElementById('count');
+        const tapBtn = document.getElementById('tap-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const undoBtn = document.getElementById('undo-btn');
+        const rippleContainer = document.getElementById('ripple-container');
+        const storageIndicator = document.getElementById('storage-indicator');
+        const resetHint = document.getElementById('reset-hint');
+        const settingsTrigger = document.getElementById('settings-trigger');
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsCard = document.getElementById('settings-card');
+        const closeSettingsBtn = document.getElementById('close-settings');
+        const toggleSoundBtn = document.getElementById('toggle-sound');
+        const toggleHapticsBtn = document.getElementById('toggle-haptics');
+
+        // --- Audio System ---
+        let audioCtx;
+        function playSound(type) {
+            if (!settings.sound) return;
+
+            // AudioContext is created on first user interaction
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'tap') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(150, now); 
+                oscillator.frequency.exponentialRampToValueAtTime(0.01, now + 0.1);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+            } else if (type === 'undo') {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(100, now);
+                oscillator.frequency.linearRampToValueAtTime(50, now + 0.1);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                oscillator.start(now);
+                oscillator.stop(now + 0.15);
+            }
+        }
+
+        // --- Haptics System ---
+        function triggerHaptic(pattern) {
+            if (settings.haptics && navigator.vibrate) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // --- Data Persistence ---
+        function loadData() {
+            const savedCount = localStorage.getItem(STORAGE_KEY);
+            if (savedCount) {
+                count = parseInt(savedCount, 10);
+                updateDisplay(false);
+            }
+            
+            const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+            setTheme(savedTheme);
+
+            const savedSettings = localStorage.getItem(SETTINGS_KEY);
+            if (savedSettings) {
+                settings = JSON.parse(savedSettings);
+                // Settings UI update handles itself during Theme Set
+            }
+            updateSettingsUI(); // Ensure UI matches loaded state
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, count);
+            showSavedIndicator();
+        }
+
+        function saveSettings() {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        }
+
+        let saveTimeout;
+        function showSavedIndicator() {
+            storageIndicator.classList.remove('opacity-0');
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                storageIndicator.classList.add('opacity-0');
+            }, 1000);
+        }
+
+        // --- Settings Logic (Monochrome) ---
+        function updateSettingsUI() {
+            // Define active state colors based on current theme (high contrast)
+            let activeBg, activeKnob;
+            
+            if (currentTheme === 'light') {
+                activeBg = 'bg-zinc-900'; // Black toggle in light mode
+                activeKnob = 'bg-white';
+            } else {
+                activeBg = 'bg-white'; // White toggle in dark modes
+                activeKnob = 'bg-black';
+            }
+
+            const applyState = (btn, isOn) => {
+                const knob = btn.querySelector('.toggle-knob');
+                
+                // Clean slate: remove all potential color classes
+                btn.classList.remove('bg-zinc-900', 'bg-white', 'bg-zinc-200', 'bg-zinc-700', 'bg-zinc-800');
+                knob.classList.remove('bg-white', 'bg-black');
+
+                if (isOn) {
+                    btn.classList.add(activeBg);
+                    knob.classList.add(activeKnob);
+                    knob.style.transform = 'translateX(20px)';
+                } else {
+                    updateToggleInactiveColor(btn);
+                    knob.classList.add('bg-white'); // Inactive knob is always white for clarity
+                    knob.style.transform = 'translateX(0)';
+                }
+            };
+
+            applyState(toggleSoundBtn, settings.sound);
+            applyState(toggleHapticsBtn, settings.haptics);
+        }
+
+        function updateToggleInactiveColor(btn) {
+            // Sets the "off" grey color based on theme
+            if (currentTheme === 'light') {
+                btn.classList.add('bg-zinc-200');
+            } else if (currentTheme === 'dark') {
+                btn.classList.add('bg-zinc-700');
+            } else {
+                btn.classList.add('bg-zinc-800');
+            }
+        }
+
+        function toggleSound() {
+            settings.sound = !settings.sound;
+            saveSettings();
+            updateSettingsUI();
+            if(settings.sound) playSound('tap');
+        }
+
+        function toggleHaptics() {
+            settings.haptics = !settings.haptics;
+            saveSettings();
+            updateSettingsUI();
+            if(settings.haptics) triggerHaptic(15);
+        }
+
+        function openSettings() {
+            settingsModal.classList.remove('pointer-events-none', 'opacity-0');
+            settingsCard.classList.remove('scale-95', 'translate-y-4');
+            settingsCard.classList.add('scale-100', 'translate-y-0');
+        }
+
+        function closeSettings() {
+            settingsModal.classList.add('pointer-events-none', 'opacity-0');
+            settingsCard.classList.add('scale-95', 'translate-y-4');
+            settingsCard.classList.remove('scale-100', 'translate-y-0');
+        }
+
+        // --- Theme Engine ---
+        function setTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem(THEME_KEY, theme);
+
+            // Reset base classes for elements that change completely
+            body.className = "w-screen overflow-hidden flex flex-col items-center select-none theme-transition";
+            tapBtn.className = "group relative w-64 h-64 md:w-80 md:h-80 rounded-full flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-[1.02] active:scale-[0.96] outline-none theme-transition shadow-2xl";
+            undoBtn.className = "p-4 rounded-full border transition-all duration-200 opacity-50 hover:opacity-100 hover:scale-110 active:scale-95 theme-transition focus:opacity-100 focus:outline-none";
+            resetBtn.className = "text-xs font-semibold tracking-widest uppercase opacity-40 hover:opacity-100 transition-all duration-300 px-6 py-4 rounded-lg focus:outline-none";
+            
+            // Modal styling
+            const modalBase = "relative w-72 md:w-80 rounded-3xl p-6 shadow-2xl transform transition-all duration-300 ";
+
+            if (theme === 'light') {
+                body.classList.add('bg-zinc-50', 'text-zinc-950');
+                
+                tapBtn.classList.add('bg-zinc-950', 'text-white', 'shadow-zinc-300');
+                
+                undoBtn.classList.add('bg-white', 'border-zinc-200', 'text-zinc-900');
+                resetBtn.classList.add('text-zinc-400', 'hover:text-red-600', 'hover:bg-red-50');
+                
+                settingsTrigger.classList.add('text-zinc-900');
+                settingsTrigger.classList.remove('text-zinc-100');
+                
+                settingsCard.className = modalBase + "bg-white text-zinc-950";
+            } 
+            else if (theme === 'dark') {
+                body.classList.add('bg-zinc-900', 'text-zinc-50');
+                
+                tapBtn.classList.add('bg-zinc-100', 'text-zinc-950', 'shadow-zinc-950');
+                
+                undoBtn.classList.add('bg-zinc-800', 'border-zinc-700', 'text-zinc-200');
+                resetBtn.classList.add('text-zinc-500', 'hover:text-red-400', 'hover:bg-red-900/20');
+                
+                settingsTrigger.classList.add('text-zinc-100');
+                settingsTrigger.classList.remove('text-zinc-900');
+                
+                settingsCard.className = modalBase + "bg-zinc-900 text-zinc-50 border border-zinc-800";
+            } 
+            else if (theme === 'jet') {
+                // Jet Black (AMOLED)
+                body.classList.add('bg-black', 'text-zinc-400');
+                
+                // Button distinguishable by border and slightly lighter shade
+                tapBtn.classList.add('bg-zinc-900', 'text-zinc-200', 'border', 'border-zinc-800', 'shadow-none');
+                
+                undoBtn.classList.add('bg-black', 'border-zinc-800', 'text-zinc-500', 'hover:text-zinc-200');
+                resetBtn.classList.add('text-zinc-600', 'hover:text-red-500');
+                
+                settingsTrigger.classList.add('text-zinc-100');
+                settingsTrigger.classList.remove('text-zinc-900');
+                
+                settingsCard.className = modalBase + "bg-zinc-950 text-zinc-300 border border-zinc-800";
+            }
+
+            // Refresh settings toggle colors to match new theme
+            updateSettingsUI();
+        }
+
+        // --- Interaction Logic ---
+        function updateDisplay(animate = true) {
+            countDisplay.innerText = count;
+            if (animate) {
+                tapBtn.classList.add('pressed');
+                setTimeout(() => tapBtn.classList.remove('pressed'), 100);
+            }
+            // Disable undo if count is 0
+            if (count === 0) {
+                undoBtn.classList.add('pointer-events-none', 'opacity-20');
+            } else {
+                undoBtn.classList.remove('pointer-events-none', 'opacity-20');
+            }
+        }
+
+        function createRipple(x, y) {
+            const circle = document.createElement('span');
+            const diameter = Math.max(tapBtn.clientWidth, tapBtn.clientHeight);
+            const radius = diameter / 2;
+            const rect = tapBtn.getBoundingClientRect();
+            
+            const clickX = x === undefined ? rect.width / 2 : x - rect.left;
+            const clickY = y === undefined ? rect.height / 2 : y - rect.top;
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${clickX - radius}px`;
+            circle.style.top = `${clickY - radius}px`;
+            
+            const rippleColor = currentTheme === 'light' ? 'bg-white' : 'bg-black';
+            circle.classList.add('absolute', 'rounded-full', rippleColor, 'opacity-20', 'animate-ripple');
+
+            rippleContainer.appendChild(circle);
+            setTimeout(() => circle.remove(), 600);
+        }
+
+        function increment(e) {
+            count++;
+            
+            let clientX, clientY;
+            if (e && e.type.includes('touch')) {
+               clientX = e.touches[0].clientX;
+               clientY = e.touches[0].clientY;
+            } else if (e && e.type === 'click' && e.detail !== 0) {
+               clientX = e.clientX;
+               clientY = e.clientY;
+            }
+
+            triggerHaptic(15);
+            playSound('tap');
+            updateDisplay();
+            saveData();
+            createRipple(clientX, clientY);
+        }
+
+        function undo() {
+            if (count > 0) {
+                count--;
+                updateDisplay();
+                saveData();
+                triggerHaptic([10, 30, 10]); // Short double-buzz
+                playSound('undo');
+            }
+        }
+
+        // --- Reset Logic (Double Tap) ---
+        let resetTapCount = 0;
+        let resetTimer;
+
+        function handleResetClick() {
+            resetTapCount++;
+            
+            if (resetTapCount === 1) {
+                // First tap
+                resetBtn.innerText = "Confirm?";
+                resetBtn.classList.remove('opacity-40');
+                resetBtn.classList.add('text-red-500', 'opacity-100', 'font-bold');
+                resetHint.innerText = "Tap again to reset";
+                
+                triggerHaptic(30);
+
+                resetTimer = setTimeout(() => {
+                    resetTapCount = 0;
+                    resetBtn.innerText = "Reset";
+                    resetBtn.classList.add('opacity-40');
+                    resetBtn.classList.remove('text-red-500', 'opacity-100', 'font-bold');
+                    resetHint.innerText = "";
+                }, 2000);
+            } else {
+                // Second tap (confirmed)
+                clearTimeout(resetTimer);
+                count = 0;
+                updateDisplay();
+                saveData();
+                triggerHaptic(100); // Long buzz
+                
+                resetTapCount = 0;
+                resetBtn.innerText = "Reset";
+                resetBtn.classList.add('opacity-40');
+                resetBtn.classList.remove('text-red-500', 'opacity-100', 'font-bold');
+                resetHint.innerText = "";
+            }
+        }
+
+        // --- Event Binding ---
+        
+        // Pointer events for fast mobile response
+        tapBtn.addEventListener('pointerdown', (e) => {
+            tapBtn.setPointerCapture(e.pointerId);
+            increment(e);
+        });
+
+        // Fallback for non-pointer interactions or keyboard clicks (detail 0)
+        tapBtn.addEventListener('click', (e) => { 
+            if (e.detail === 0) increment(e); 
+        });
+
+        undoBtn.addEventListener('click', undo);
+        resetBtn.addEventListener('click', handleResetClick);
+
+        // Settings Modal Interactions
+        settingsTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSettings();
+        });
+        
+        closeSettingsBtn.addEventListener('click', closeSettings);
+        document.getElementById('settings-backdrop').addEventListener('click', closeSettings);
+        
+        toggleSoundBtn.addEventListener('click', toggleSound);
+        toggleHapticsBtn.addEventListener('click', toggleHaptics);
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                tapBtn.classList.add('scale-[0.96]');
+                increment(); 
+                setTimeout(() => tapBtn.classList.remove('scale-[0.96]'), 100);
+            }
+            if (e.code === 'ArrowLeft' || e.code === 'ArrowDown') undo();
+            if (e.code === 'Escape') closeSettings();
+        });
+
+        // Initialize App
+        loadData();
+
+    </script>
+</body>
+</html>
