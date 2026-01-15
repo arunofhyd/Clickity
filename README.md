@@ -19,11 +19,12 @@
 
 Clickity is a static web application built with HTML, Tailwind CSS, and vanilla JavaScript.
 
-## 👤 Author
-
-**Arun Thomas**
-- Email: [arunthomas04042001@gmail.com](mailto:arunthomas04042001@gmail.com)
-
 ## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="mailto:arunthomas04042001@gmail.com">Arun Thomas</a>
+</p>
