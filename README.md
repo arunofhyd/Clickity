@@ -2,10 +2,6 @@
   <img src="assets/logo_rounded.png" alt="Clickity Logo" width="120" height="120">
   <h1>Clickity</h1>
   <p><strong>A simple, elegant counter app with haptic feedback and themes.</strong></p>
-
-  <p>
-    <a href="https://clickity.vercel.app/">Live Demo</a>
-  </p>
 </div>
 
 ---
