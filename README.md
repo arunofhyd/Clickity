@@ -15,26 +15,9 @@
 - **PWA Ready:** Installable on your device for a native-like experience.
 - **Local Storage:** Your count is saved automatically.
 
-## 🚀 Usage
-
-Clickity is a static web application built with HTML, Tailwind CSS, and vanilla JavaScript.
-
-### Running Locally
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/arunofhyd/Clickity.git
-   ```
-2. Open `index.html` in your browser.
-
-   *Tip: For the best experience, use a local server (e.g., Live Server in VS Code).*
-
 ## 🛠️ Technologies
 
-- **HTML5**
-- **Tailwind CSS** (via CDN)
-- **JavaScript** (Vanilla)
-- **Google Fonts** (Inter)
+Clickity is a static web application built with HTML, Tailwind CSS, and vanilla JavaScript.
 
 ## 👤 Author
 
