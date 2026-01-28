@@ -486,6 +486,21 @@
         // --- Interaction Logic ---
         function updateDisplay(animate = true) {
             countDisplay.innerText = count;
+
+            // Dynamic Font Sizing
+            const len = count.toString().length;
+            let sizeClass = 'text-8xl md:text-9xl';
+            
+            if (len >= 8) {
+                sizeClass = 'text-4xl md:text-5xl';
+            } else if (len >= 6) {
+                sizeClass = 'text-5xl md:text-6xl';
+            } else if (len === 5) {
+                sizeClass = 'text-6xl md:text-7xl';
+            }
+            
+            countDisplay.className = `count-display ${sizeClass} font-bold tracking-tighter z-10 select-none`;
+
             if (animate) {
                 tapBtn.classList.add('pressed');
                 setTimeout(() => tapBtn.classList.remove('pressed'), 100);
